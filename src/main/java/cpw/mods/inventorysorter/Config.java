@@ -31,8 +31,11 @@ public class Config {
         public enum SortOrder
         {
             RAW_ID,
+            ITEM_ID,
             CREATIVE,
-            QUARK
+            QUARK,
+            NAME,
+            DISPLAY_NAME,
         }
 
         public final ForgeConfigSpec.EnumValue<SortOrder> sortOrder;

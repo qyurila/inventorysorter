@@ -30,6 +30,7 @@ import java.util.*;
 
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BrewingStandBlockEntity;
@@ -160,15 +161,52 @@ public enum InventoryHandler
         @Override
         public int compare(ItemStackHolder holder1, ItemStackHolder holder2)
         {
-            if (holder1 == holder2) return 0;
-
             ItemStack stack1 = holder1.itemStack;
             ItemStack stack2 = holder2.itemStack;
 
-            if (stack1 == stack2) return 0;
-            if (stack1.getItem() == stack2.getItem() && ItemStack.tagMatches(stack1, stack2)) return 0;
+            if (stack1.isEmpty())
+                return -1;
+            if (stack2.isEmpty())
+                return 1;
+            if (holder1 == holder2)
+                return 0;
 
-            return Ints.compare(Registry.ITEM.getId(stack1.getItem()), Registry.ITEM.getId(stack2.getItem()));
+            int compareResult = 0;
+            switch (Config.CLIENT.sortOrder.get()) {
+                case RAW_ID:
+                    compareResult = Ints.compare(Registry.ITEM.getId(stack1.getItem()), Registry.ITEM.getId(stack2.getItem()));
+                    break;
+                case ITEM_ID:
+                    compareResult = Ints.compare(Item.getId(stack1.getItem()), Item.getId(stack2.getItem()));
+                    break;
+                case CREATIVE:
+                    CreativeModeTab category1 = stack1.getItem().getItemCategory();
+                    CreativeModeTab category2 = stack2.getItem().getItemCategory();
+
+                    if (category1 == null && category2 == null)
+                        break;
+                    if (category1 == null)
+                        return -1;
+                    if (category2 == null)
+                        return 1;
+
+                    compareResult = Ints.compare(category1.getId(), category2.getId());
+                    if (compareResult == 0) {
+                        // TODO find out item ordering inside a creative tab
+                        compareResult = Ints.compare(Registry.ITEM.getId(stack1.getItem()), Registry.ITEM.getId(stack2.getItem()));
+                    }
+                    break;
+                case NAME:
+                    compareResult = stack1.getItem().getName(stack1).getString().compareTo(stack2.getItem().getName(stack2).getString());
+                    break;
+                case DISPLAY_NAME:
+                    compareResult = stack1.getDisplayName().getString().compareTo(stack2.getDisplayName().getString());
+                    break;
+                default:
+                    return 0;
+            }
+
+            return compareResult != 0 ? compareResult : Ints.compare(holder1.hashCode(), holder2.hashCode());
         }
     }
 
