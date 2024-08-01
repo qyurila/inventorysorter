@@ -196,6 +196,9 @@ public enum InventoryHandler
                         compareResult = Ints.compare(Registry.ITEM.getId(stack1.getItem()), Registry.ITEM.getId(stack2.getItem()));
                     }
                     break;
+                case QUARK:
+                    compareResult = QuarkSortingHandler.stackCompare(stack1, stack2);
+                    break;
                 case NAME:
                     compareResult = stack1.getItem().getName(stack1).getString().compareTo(stack2.getItem().getName(stack2).getString());
                     break;

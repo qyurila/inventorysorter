@@ -1,210 +1,48 @@
-package vazkii.quark.base.handler;
+package cpw.mods.inventorysorter;
 
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.Container;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.SlotItemHandler;
-import net.minecraftforge.items.wrapper.InvWrapper;
 import net.minecraftforge.registries.ForgeRegistries;
-import vazkii.quark.addons.oddities.inventory.BackpackMenu;
-import vazkii.quark.addons.oddities.inventory.SlotCachingItemHandler;
-import vazkii.quark.api.ICustomSorting;
-import vazkii.quark.api.QuarkCapabilities;
-import vazkii.quark.base.module.ModuleLoader;
-import vazkii.quark.content.management.module.InventorySortingModule;
 
 import java.util.*;
 import java.util.function.Predicate;
 
-public final class SortingHandler {
-
+public class QuarkSortingHandler {
 	private static final Comparator<ItemStack> FALLBACK_COMPARATOR = jointComparator(Arrays.asList(
 			Comparator.comparingInt((ItemStack s) -> Item.getId(s.getItem())),
-			SortingHandler::damageCompare,
-			(ItemStack s1, ItemStack s2) -> s2.getCount() - s1.getCount(),
-			(ItemStack s1, ItemStack s2) -> s2.hashCode() - s1.hashCode()));
+			QuarkSortingHandler::damageCompare,
+			(ItemStack s1, ItemStack s2) -> s2.getCount() - s1.getCount()));
 
 	private static final Comparator<ItemStack> FOOD_COMPARATOR = jointComparator(Arrays.asList(
-			SortingHandler::foodHealCompare,
-			SortingHandler::foodSaturationCompare));
+			QuarkSortingHandler::foodHealCompare,
+			QuarkSortingHandler::foodSaturationCompare));
 
 	private static final Comparator<ItemStack> TOOL_COMPARATOR = jointComparator(Arrays.asList(
-			SortingHandler::toolPowerCompare,
-			SortingHandler::enchantmentCompare,
-			SortingHandler::damageCompare));
+			QuarkSortingHandler::toolPowerCompare,
+			QuarkSortingHandler::enchantmentCompare,
+			QuarkSortingHandler::damageCompare));
 
 	private static final Comparator<ItemStack> SWORD_COMPARATOR = jointComparator(Arrays.asList(
-			SortingHandler::swordPowerCompare,
-			SortingHandler::enchantmentCompare,
-			SortingHandler::damageCompare));
+			QuarkSortingHandler::swordPowerCompare,
+			QuarkSortingHandler::enchantmentCompare,
+			QuarkSortingHandler::damageCompare));
 
 	private static final Comparator<ItemStack> ARMOR_COMPARATOR = jointComparator(Arrays.asList(
-			SortingHandler::armorSlotAndToughnessCompare,
-			SortingHandler::enchantmentCompare,
-			SortingHandler::damageCompare));
+			QuarkSortingHandler::armorSlotAndToughnessCompare,
+			QuarkSortingHandler::enchantmentCompare,
+			QuarkSortingHandler::damageCompare));
 
 	private static final Comparator<ItemStack> BOW_COMPARATOR = jointComparator(Arrays.asList(
-			SortingHandler::enchantmentCompare,
-			SortingHandler::damageCompare));
+			QuarkSortingHandler::enchantmentCompare,
+			QuarkSortingHandler::damageCompare));
 
-	public static void sortInventory(Player player, boolean forcePlayer) {
-		if (!ModuleLoader.INSTANCE.isModuleEnabled(InventorySortingModule.class))
-			return;
-
-		AbstractContainerMenu c = player.containerMenu;
-		boolean backpack = c instanceof BackpackMenu;
-		if ((!backpack && forcePlayer) || c == null)
-			c = player.inventoryMenu;
-
-		boolean playerContainer = c == player.inventoryMenu || backpack;
-
-		for (Slot s : c.slots) {
-			Container inv = s.container;
-			if ((inv == player.getInventory()) == playerContainer) {
-				if (!playerContainer && s instanceof SlotItemHandler slot) {
-					sortInventory(slot.getItemHandler());
-				} else {
-					InvWrapper wrapper = new InvWrapper(inv);
-					if (playerContainer)
-						sortInventory(wrapper, 9, 36);
-					else sortInventory(wrapper);
-				}
-				break;
-			}
-		}
-
-		if(backpack)
-			for (Slot s : c.slots)
-				if (s instanceof SlotCachingItemHandler) {
-					sortInventory(((SlotCachingItemHandler) s).getItemHandler());
-					break;
-				}
-	}
-
-	public static void sortInventory(IItemHandler handler) {
-		sortInventory(handler, 0);
-	}
-
-	public static void sortInventory(IItemHandler handler, int iStart) {
-		sortInventory(handler, iStart, handler.getSlots());
-	}
-
-	public static void sortInventory(IItemHandler handler, int iStart, int iEnd) {
-		List<ItemStack> stacks = new ArrayList<>();
-		List<ItemStack> restore = new ArrayList<>();
-
-		for (int i = iStart; i < iEnd; i++) {
-			ItemStack stackAt = handler.getStackInSlot(i);
-			restore.add(stackAt.copy());
-			if (!stackAt.isEmpty())
-				stacks.add(stackAt.copy());
-		}
-
-		mergeStacks(stacks);
-		sortStackList(stacks);
-
-		if (setInventory(handler, stacks, iStart, iEnd) == InteractionResult.FAIL)
-			setInventory(handler, restore, iStart, iEnd);
-	}
-
-	private static InteractionResult setInventory(IItemHandler inventory, List<ItemStack> stacks, int iStart, int iEnd) {
-		for (int i = iStart; i < iEnd; i++) {
-			int j = i - iStart;
-			ItemStack stack = j >= stacks.size() ? ItemStack.EMPTY : stacks.get(j);
-
-			ItemStack stackInSlot = inventory.getStackInSlot(i);
-			if (!stackInSlot.isEmpty()) {
-				ItemStack extractTest = inventory.extractItem(i, inventory.getSlotLimit(i), true);
-				if (extractTest.isEmpty() || extractTest.getCount() != stackInSlot.getCount())
-					return InteractionResult.PASS;
-			}
-
-			if (!stack.isEmpty() && !inventory.isItemValid(i, stack))
-				return InteractionResult.PASS;
-		}
-
-		for (int i = iStart; i < iEnd; i++) {
-			inventory.extractItem(i, inventory.getSlotLimit(i), false);
-		}
-
-		for (int i = iStart; i < iEnd; i++) {
-			int j = i - iStart;
-			ItemStack stack = j >= stacks.size() ? ItemStack.EMPTY : stacks.get(j);
-
-			if (!stack.isEmpty())
-				if (!inventory.insertItem(i, stack, false).isEmpty())
-					return InteractionResult.FAIL;
-		}
-
-		return InteractionResult.SUCCESS;
-	}
-
-	public static void mergeStacks(List<ItemStack> list) {
-		for (int i = 0; i < list.size(); i++) {
-			ItemStack set = mergeStackWithOthers(list, i);
-			list.set(i, set);
-		}
-
-		list.removeIf((ItemStack stack) -> stack.isEmpty() || stack.getCount() == 0);
-	}
-
-	private static ItemStack mergeStackWithOthers(List<ItemStack> list, int index) {
-		ItemStack stack = list.get(index);
-		if (stack.isEmpty())
-			return stack;
-
-		for (int i = 0; i < list.size(); i++) {
-			if (i == index)
-				continue;
-
-			ItemStack stackAt = list.get(i);
-			if (stackAt.isEmpty())
-				continue;
-
-			if (stackAt.getCount() < stackAt.getMaxStackSize() && ItemStack.isSame(stack, stackAt) && ItemStack.tagMatches(stack, stackAt)) {
-				int setSize = stackAt.getCount() + stack.getCount();
-				int carryover = Math.max(0, setSize - stackAt.getMaxStackSize());
-				stackAt.setCount(carryover);
-				stack.setCount(setSize - carryover);
-
-				if (stack.getCount() == stack.getMaxStackSize())
-					return stack;
-			}
-		}
-
-		return stack;
-	}
-
-	public static void sortStackList(List<ItemStack> list) {
-		list.sort(SortingHandler::stackCompare);
-	}
-
-	private static int stackCompare(ItemStack stack1, ItemStack stack2) {
-		if (stack1 == stack2)
-			return 0;
-		if (stack1.isEmpty())
-			return -1;
-		if (stack2.isEmpty())
-			return 1;
-
-		if(hasCustomSorting(stack1) && hasCustomSorting(stack2)) {
-			ICustomSorting sort1 = getCustomSorting(stack1);
-			ICustomSorting sort2 = getCustomSorting(stack2);
-			if (sort1.getSortingCategory().equals(sort2.getSortingCategory()))
-				return sort1.getItemComparator().compare(stack1, stack2);
-		}
-
+	public static int stackCompare(ItemStack stack1, ItemStack stack2) {
 		ItemType type1 = getType(stack1);
 		ItemType type2 = getType(stack2);
 
@@ -371,14 +209,6 @@ public final class SortingHandler {
 
 	public static int damageCompare(ItemStack stack1, ItemStack stack2) {
 		return stack1.getDamageValue() - stack2.getDamageValue();
-	}
-
-	static boolean hasCustomSorting(ItemStack stack) {
-		return stack.getCapability(QuarkCapabilities.SORTING, null).isPresent();
-	}
-
-	static ICustomSorting getCustomSorting(ItemStack stack) {
-		return stack.getCapability(QuarkCapabilities.SORTING, null).orElse(null);
 	}
 
 	private enum ItemType {
