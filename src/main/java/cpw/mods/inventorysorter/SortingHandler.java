@@ -25,6 +25,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.resources.ResourceLocation;
 import org.apache.logging.log4j.*;
 
+import java.util.Iterator;
 import java.util.function.*;
 
 import net.minecraft.world.inventory.CraftingContainer;
@@ -121,10 +122,14 @@ public enum SortingHandler implements Consumer<ContainerContext>
         }
 
         InventorySorter.INSTANCE.debugLog("Container \"{}\" being sorted", ()->new String[] {containerTypeName.toString()});
-        final UnmodifiableIterator<Multiset.Entry<ItemStackHolder>> itemsIterator;
+        final Iterator<Multiset.Entry<ItemStackHolder>> itemsIterator;
         try
         {
-            itemsIterator = Multisets.copyHighestCountFirst(itemcounts).entrySet().iterator();
+            if (Config.CLIENT.sortByCountFirst.get()) {
+                itemsIterator = Multisets.copyHighestCountFirst(itemcounts).entrySet().iterator();
+            } else {
+                itemsIterator = Multisets.unmodifiableMultiset(itemcounts).entrySet().iterator();
+            }
         }
         catch (Exception e)
         {
