@@ -23,5 +23,7 @@
   "inventorysorter.commands.inventorysorter.showblacklist.message": "Current blacklist §e{0}§f",
   "inventorysorter.commands.inventorysorter.showblacklist.empty": "The blacklist is empty",
   "inventorysorter.config.containerblacklist": "Container blacklist",
-  "inventorysorter.config.slotblacklist": "Slot type blacklist"
+  "inventorysorter.config.slotblacklist": "Slot type blacklist",
+  "inventorysorter.config.sortorder": "Sort order",
+  "inventorysorter.config.sortbycountfirst": "Sort by count first"
 }

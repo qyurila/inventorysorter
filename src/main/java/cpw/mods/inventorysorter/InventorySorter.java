@@ -39,7 +39,6 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -73,7 +72,8 @@ public class InventorySorter
         bus.addListener(this::clientSetup);
         bus.addListener(this::handleimc);
         bus.addListener(this::onConfigLoad);
-        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, Config.SPEC);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, Config.SERVER_SPEC);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, Config.CLIENT_SPEC);
 
         MinecraftForge.EVENT_BUS.addListener(this::onServerStarting);
     }
@@ -131,15 +131,15 @@ public class InventorySorter
         this.containerblacklist.clear();
 
         // Merge in the config values and the imc values
-        this.slotblacklist.addAll(Config.CONFIG.slotBlacklist.get());
-        this.containerblacklist.addAll(Config.CONFIG.containerBlacklist.get().stream().map(ResourceLocation::new).collect(Collectors.toSet()));
+        this.slotblacklist.addAll(Config.SERVER.slotBlacklist.get());
+        this.containerblacklist.addAll(Config.SERVER.containerBlacklist.get().stream().map(ResourceLocation::new).collect(Collectors.toSet()));
         this.slotblacklist.addAll(imcSlotBlacklist);
         this.containerblacklist.addAll(imcContainerBlacklist);
     }
 
     private void updateConfig() {
-        Config.CONFIG.containerBlacklist.set(containerblacklist.stream().filter(e -> !imcContainerBlacklist.contains(e)).map(Objects::toString).collect(Collectors.toList()));
-        Config.CONFIG.slotBlacklist.set(slotblacklist.stream().filter(e -> !imcSlotBlacklist.contains(e)).collect(Collectors.toList()));
+        Config.SERVER.containerBlacklist.set(containerblacklist.stream().filter(e -> !imcContainerBlacklist.contains(e)).map(Objects::toString).collect(Collectors.toList()));
+        Config.SERVER.slotBlacklist.set(slotblacklist.stream().filter(e -> !imcSlotBlacklist.contains(e)).collect(Collectors.toList()));
 
         updateBlacklists();
     }
