@@ -21,6 +21,7 @@ package cpw.mods.inventorysorter;
 import com.google.common.base.*;
 import com.google.common.collect.*;
 import com.google.common.primitives.*;
+import net.minecraft.core.Registry;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 
@@ -29,6 +30,7 @@ import java.util.*;
 
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BrewingStandBlockEntity;
 import net.minecraft.world.level.block.entity.FurnaceBlockEntity;
@@ -141,8 +143,8 @@ public enum InventoryHandler
             ItemStack stack = slot.getItem();
             if (!stack.isEmpty())
             {
-                ItemStackHolder ish = new ItemStackHolder(stack.copy());
-                itemcounts.add(ish, stack.getCount());
+                ItemStackHolder holder = new ItemStackHolder(stack.copy());
+                itemcounts.add(holder, stack.getCount());
             }
         }
         final HashMultiset<ItemStackHolder> entries = HashMultiset.create();
@@ -156,15 +158,17 @@ public enum InventoryHandler
     public static class ItemStackComparator implements Comparator<ItemStackHolder>
     {
         @Override
-        public int compare(ItemStackHolder o1, ItemStackHolder o2)
+        public int compare(ItemStackHolder holder1, ItemStackHolder holder2)
         {
-            if (o1 == o2) return 0;
-            if (o1.is == o2.is) return 0;
-            if (o1.is.getItem() != o2.is.getItem())
-                return String.valueOf(o1.is.getItem().getRegistryName()).compareTo(String.valueOf(o2.is.getItem().getRegistryName()));
-            if (ItemStack.tagMatches(o1.is, o2.is))
-                return 0;
-            return Ints.compare(System.identityHashCode(o1.is), System.identityHashCode(o2.is));
+            if (holder1 == holder2) return 0;
+
+            ItemStack stack1 = holder1.itemStack;
+            ItemStack stack2 = holder2.itemStack;
+
+            if (stack1 == stack2) return 0;
+            if (stack1.getItem() == stack2.getItem() && ItemStack.tagMatches(stack1, stack2)) return 0;
+
+            return Ints.compare(Registry.ITEM.getId(stack1.getItem()), Registry.ITEM.getId(stack2.getItem()));
         }
     }
 
