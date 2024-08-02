@@ -213,8 +213,8 @@ public class QuarkSortingHandler {
 
 	private enum ItemType {
 
-		FOOD(ItemStack::isEdible, FOOD_COMPARATOR),
 		TORCH(list(Blocks.TORCH)),
+		FOOD(ItemStack::isEdible, FOOD_COMPARATOR),
 		TOOL_PICKAXE(classPredicate(PickaxeItem.class), TOOL_COMPARATOR),
 		TOOL_SHOVEL(classPredicate(ShovelItem.class), TOOL_COMPARATOR),
 		TOOL_AXE(classPredicate(AxeItem.class), TOOL_COMPARATOR),
