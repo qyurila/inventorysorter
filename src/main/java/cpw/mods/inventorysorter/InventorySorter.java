@@ -25,7 +25,6 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.InterModComms;
-import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -146,14 +145,6 @@ public class InventorySorter
 
     void onConfigLoad(ModConfigEvent configEvent) {
         updateBlacklists();
-    }
-
-    boolean wheelModConflicts() {
-        return ModList.get().isLoaded("mousetweaks");
-    }
-
-    boolean sortingModConflicts() {
-        return false;
     }
 
     final void debugLog(String message, Supplier<String[]> args) {
