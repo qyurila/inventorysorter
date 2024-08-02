@@ -45,7 +45,7 @@ public enum InventoryHandler
     {
         int slotLow = context.slotMapping.begin;
         int slotHigh = context.slotMapping.end + 1;
-        SortedMultiset<ItemStackHolder> itemcounts = TreeMultiset.create(new ItemStackComparator());
+        Multiset<ItemStackHolder> itemcounts = HashMultiset.create();
         for (int i = slotLow; i < slotHigh; i++)
         {
             final Slot slot = context.player.containerMenu.getSlot(i);
@@ -57,14 +57,12 @@ public enum InventoryHandler
                 itemcounts.add(holder, stack.getCount());
             }
         }
-        /* Why was this a thing?
-        final HashMultiset<ItemStackHolder> entries = HashMultiset.create();
-        for (Multiset.Entry<ItemStackHolder> entry : itemcounts.descendingMultiset().entrySet())
+        final SortedMultiset<ItemStackHolder> entries = TreeMultiset.create(new ItemStackComparator());
+        for (Multiset.Entry<ItemStackHolder> entry : itemcounts.entrySet())
         {
-            entries.add(entry.getElement(),entry.getCount());
+            entries.add(entry.getElement(), entry.getCount());
         }
-        */
-        return itemcounts;
+        return entries;
     }
 
     public static class ItemStackComparator implements Comparator<ItemStackHolder>
