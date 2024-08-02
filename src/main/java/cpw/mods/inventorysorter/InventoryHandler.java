@@ -104,13 +104,10 @@ public enum InventoryHandler
                         compareResult = Ints.compare(Item.getId(stack1.getItem()), Item.getId(stack2.getItem()));
                     }
                     break;
-                case RAW_ID:
-                    compareResult = Ints.compare(Registry.ITEM.getId(stack1.getItem()), Registry.ITEM.getId(stack2.getItem()));
-                    break;
                 case ITEM_ID:
                     compareResult = Ints.compare(Item.getId(stack1.getItem()), Item.getId(stack2.getItem()));
                     break;
-                case NAME:
+                case ITEM_NAME:
                     compareResult = stack1.getItem().getName(stack1).getString().compareTo(stack2.getItem().getName(stack2).getString());
                     break;
                 case DISPLAY_NAME:

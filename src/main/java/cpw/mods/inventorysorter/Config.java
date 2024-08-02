@@ -32,9 +32,8 @@ public class Config {
         {
             QUARK,
             CREATIVE,
-            RAW_ID,
             ITEM_ID,
-            NAME,
+            ITEM_NAME,
             DISPLAY_NAME,
         }
 
