@@ -1,9 +1,13 @@
 package cpw.mods.inventorysorter;
 
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.block.Block;
@@ -17,7 +21,8 @@ public class QuarkSortingHandler {
 	private static final Comparator<ItemStack> FALLBACK_COMPARATOR = jointComparator(Arrays.asList(
 			Comparator.comparingInt((ItemStack s) -> Item.getId(s.getItem())),
 			QuarkSortingHandler::damageCompare,
-			(ItemStack s1, ItemStack s2) -> s2.getCount() - s1.getCount()));
+			(ItemStack s1, ItemStack s2) -> s2.getCount() - s1.getCount(),
+			QuarkSortingHandler::fallbackNBTCompare));
 
 	private static final Comparator<ItemStack> FOOD_COMPARATOR = jointComparator(Arrays.asList(
 			QuarkSortingHandler::foodHealCompare,
@@ -41,6 +46,10 @@ public class QuarkSortingHandler {
 	private static final Comparator<ItemStack> BOW_COMPARATOR = jointComparator(Arrays.asList(
 			QuarkSortingHandler::enchantmentCompare,
 			QuarkSortingHandler::damageCompare));
+
+	private static final Comparator<ItemStack> POTION_COMPARATOR = jointComparator(Arrays.asList(
+			QuarkSortingHandler::potionComplexityCompare,
+			QuarkSortingHandler::potionTypeCompare));
 
 	public static int stackCompare(ItemStack stack1, ItemStack stack2) {
 		ItemType type1 = getType(stack1);
@@ -211,6 +220,41 @@ public class QuarkSortingHandler {
 		return stack1.getDamageValue() - stack2.getDamageValue();
 	}
 
+	public static int fallbackNBTCompare(ItemStack stack1, ItemStack stack2) {
+		boolean hasTag1 = stack1.hasTag();
+		boolean hasTag2 = stack2.hasTag();
+
+		if (hasTag2 && !hasTag1)
+			return -1;
+		if (hasTag1 && !hasTag2)
+			return 1;
+		if (!hasTag1)
+			return 0;
+
+		return stack2.getTag().toString().hashCode() - stack1.getTag().toString().hashCode();
+	}
+
+	public static int potionComplexityCompare(ItemStack stack1, ItemStack stack2) {
+		List<MobEffectInstance> effects1 = PotionUtils.getCustomEffects(stack1);
+		List<MobEffectInstance> effects2 = PotionUtils.getCustomEffects(stack2);
+
+		int totalPower1 = 0;
+		int totalPower2 = 0;
+		for (MobEffectInstance inst : effects1)
+			totalPower1 += inst.getAmplifier() * inst.getDuration();
+		for (MobEffectInstance inst : effects2)
+			totalPower2 += inst.getAmplifier() * inst.getDuration();
+
+		return totalPower2 - totalPower1;
+	}
+
+	public static int potionTypeCompare(ItemStack stack1, ItemStack stack2) {
+		Potion potion1 = PotionUtils.getPotion(stack1);
+		Potion potion2 = PotionUtils.getPotion(stack2);
+
+		return Registry.POTION.getId(potion2) - Registry.POTION.getId(potion1);
+	}
+
 	private enum ItemType {
 
 		TORCH(list(Blocks.TORCH)),
@@ -225,7 +269,8 @@ public class QuarkSortingHandler {
 		CROSSBOW(classPredicate(CrossbowItem.class), BOW_COMPARATOR),
 		TRIDENT(classPredicate(TridentItem.class), BOW_COMPARATOR),
 		ARROWS(classPredicate(ArrowItem.class)),
-		POTION(classPredicate(PotionItem.class)),
+		POTION(classPredicate(PotionItem.class), POTION_COMPARATOR),
+		TIPPED_ARROW(classPredicate(TippedArrowItem.class), POTION_COMPARATOR),
 		MINECART(classPredicate(MinecartItem.class)),
 		RAIL(list(Blocks.RAIL, Blocks.POWERED_RAIL, Blocks.DETECTOR_RAIL, Blocks.ACTIVATOR_RAIL)),
 		DYE(classPredicate(DyeItem.class)),
