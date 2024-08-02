@@ -18,11 +18,13 @@ import java.util.*;
 import java.util.function.Predicate;
 
 public class QuarkSortingHandler {
-	private static final Comparator<ItemStack> FALLBACK_COMPARATOR = jointComparator(Arrays.asList(
+	public static final Comparator<ItemStack> FALLBACK_COMPARATOR = jointComparator(Arrays.asList(
 			Comparator.comparingInt((ItemStack s) -> Item.getId(s.getItem())),
 			QuarkSortingHandler::damageCompare,
 			(ItemStack s1, ItemStack s2) -> s2.getCount() - s1.getCount(),
-			QuarkSortingHandler::fallbackNBTCompare));
+			QuarkSortingHandler::nameCompare,
+			QuarkSortingHandler::fallbackNBTCompare,
+			(ItemStack s1, ItemStack s2) -> s2.hashCode() - s1.hashCode()));
 
 	private static final Comparator<ItemStack> FOOD_COMPARATOR = jointComparator(Arrays.asList(
 			QuarkSortingHandler::foodHealCompare,
@@ -50,6 +52,8 @@ public class QuarkSortingHandler {
 	private static final Comparator<ItemStack> POTION_COMPARATOR = jointComparator(Arrays.asList(
 			QuarkSortingHandler::potionComplexityCompare,
 			QuarkSortingHandler::potionTypeCompare));
+
+	private static final Comparator<ItemStack> ENCHANTED_BOOK_COMPARATOR = QuarkSortingHandler::enchantmentCompare;
 
 	public static int stackCompare(ItemStack stack1, ItemStack stack2) {
 		ItemType type1 = getType(stack1);
@@ -255,6 +259,21 @@ public class QuarkSortingHandler {
 		return Registry.POTION.getId(potion2) - Registry.POTION.getId(potion1);
 	}
 
+	public static int nameCompare(ItemStack stack1, ItemStack stack2) {
+		boolean hasCustomHoverName1 = stack1.hasCustomHoverName();
+		boolean hasCustomHoverName2 = stack2.hasCustomHoverName();
+
+		if (hasCustomHoverName2 && !hasCustomHoverName1)
+			return 1;
+		if (hasCustomHoverName1 && !hasCustomHoverName2)
+			return -1;
+
+		String name1 = stack1.getHoverName().getString();
+		String name2 = stack1.getHoverName().getString();
+
+		return name1.compareTo(name2);
+	}
+
 	private enum ItemType {
 
 		TORCH(list(Blocks.TORCH)),
@@ -269,8 +288,9 @@ public class QuarkSortingHandler {
 		CROSSBOW(classPredicate(CrossbowItem.class), BOW_COMPARATOR),
 		TRIDENT(classPredicate(TridentItem.class), BOW_COMPARATOR),
 		ARROWS(classPredicate(ArrowItem.class)),
-		POTION(classPredicate(PotionItem.class), POTION_COMPARATOR),
 		TIPPED_ARROW(classPredicate(TippedArrowItem.class), POTION_COMPARATOR),
+		POTION(classPredicate(PotionItem.class), POTION_COMPARATOR),
+		ENCHANTED_BOOK(classPredicate(EnchantedBookItem.class), ENCHANTED_BOOK_COMPARATOR),
 		MINECART(classPredicate(MinecartItem.class)),
 		RAIL(list(Blocks.RAIL, Blocks.POWERED_RAIL, Blocks.DETECTOR_RAIL, Blocks.ACTIVATOR_RAIL)),
 		DYE(classPredicate(DyeItem.class)),

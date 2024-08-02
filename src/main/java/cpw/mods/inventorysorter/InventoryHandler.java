@@ -75,12 +75,9 @@ public enum InventoryHandler
             ItemStack stack1 = holder1.itemStack;
             ItemStack stack2 = holder2.itemStack;
 
-            if (stack1.isEmpty())
-                return -1;
-            if (stack2.isEmpty())
-                return 1;
-            if (holder1 == holder2)
-                return 0;
+            if (stack1.isEmpty()) return -1;
+            if (stack2.isEmpty()) return 1;
+            if (holder1 == holder2) return 0;
 
             int compareResult = 0;
             switch (Config.CLIENT.sortOrder.get()) {
@@ -91,12 +88,9 @@ public enum InventoryHandler
                     CreativeModeTab category1 = stack1.getItem().getItemCategory();
                     CreativeModeTab category2 = stack2.getItem().getItemCategory();
 
-                    if (category1 == null && category2 == null)
-                        break;
-                    if (category1 == null)
-                        return -1;
-                    if (category2 == null)
-                        return 1;
+                    if (category1 == null && category2 == null) break;
+                    if (category1 == null) return -1;
+                    if (category2 == null) return 1;
 
                     compareResult = Ints.compare(category1.getId(), category2.getId());
                     if (compareResult == 0) {
@@ -111,13 +105,13 @@ public enum InventoryHandler
                     compareResult = stack1.getItem().getName(stack1).getString().compareTo(stack2.getItem().getName(stack2).getString());
                     break;
                 case DISPLAY_NAME:
-                    compareResult = stack1.getDisplayName().getString().compareTo(stack2.getDisplayName().getString());
+                    compareResult = stack1.getHoverName().getString().compareTo(stack2.getHoverName().getString());
                     break;
                 default:
                     return 0;
             }
 
-            return compareResult != 0 ? compareResult : Ints.compare(holder1.hashCode(), holder2.hashCode());
+            return compareResult != 0 ? compareResult : QuarkSortingHandler.FALLBACK_COMPARATOR.compare(stack1, stack2);
         }
     }
 
