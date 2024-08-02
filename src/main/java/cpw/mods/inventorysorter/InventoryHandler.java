@@ -175,11 +175,8 @@ public enum InventoryHandler
 
             int compareResult = 0;
             switch (Config.CLIENT.sortOrder.get()) {
-                case RAW_ID:
-                    compareResult = Ints.compare(Registry.ITEM.getId(stack1.getItem()), Registry.ITEM.getId(stack2.getItem()));
-                    break;
-                case ITEM_ID:
-                    compareResult = Ints.compare(Item.getId(stack1.getItem()), Item.getId(stack2.getItem()));
+                case QUARK:
+                    compareResult = QuarkSortingHandler.stackCompare(stack1, stack2);
                     break;
                 case CREATIVE:
                     CreativeModeTab category1 = stack1.getItem().getItemCategory();
@@ -198,8 +195,11 @@ public enum InventoryHandler
                         compareResult = Ints.compare(Registry.ITEM.getId(stack1.getItem()), Registry.ITEM.getId(stack2.getItem()));
                     }
                     break;
-                case QUARK:
-                    compareResult = QuarkSortingHandler.stackCompare(stack1, stack2);
+                case RAW_ID:
+                    compareResult = Ints.compare(Registry.ITEM.getId(stack1.getItem()), Registry.ITEM.getId(stack2.getItem()));
+                    break;
+                case ITEM_ID:
+                    compareResult = Ints.compare(Item.getId(stack1.getItem()), Item.getId(stack2.getItem()));
                     break;
                 case NAME:
                     compareResult = stack1.getItem().getName(stack1).getString().compareTo(stack2.getItem().getName(stack2).getString());

@@ -30,10 +30,10 @@ public class Config {
     public static class Client {
         public enum SortOrder
         {
+            QUARK,
+            CREATIVE,
             RAW_ID,
             ITEM_ID,
-            CREATIVE,
-            QUARK,
             NAME,
             DISPLAY_NAME,
         }
@@ -47,7 +47,7 @@ public class Config {
             sortOrder = builder
                   .comment("Sort order")
                   .translation("inventorysorter.config.sortorder")
-                  .defineEnum("sortOrder", SortOrder.RAW_ID);
+                  .defineEnum("sortOrder", SortOrder.QUARK);
             sortByCountFirst = builder
                   .comment("Sort by count first")
                   .translation("inventorysorter.config.sortbycountfirst")
