@@ -28,9 +28,7 @@ import java.util.function.*;
  */
 public enum Action
 {
-    SORT(SortingHandler.INSTANCE, "key.inventorysorter.sort", GLFW.GLFW_MOUSE_BUTTON_MIDDLE, "middleClickSorting", "Middle-click sorting module", true, InventorySorter.INSTANCE::sortingModConflicts),
-    ONEITEMIN(ScrollWheelHandler.ONEITEMIN, "key.inventorysorter.itemin", 99, "mouseWheelMoving", "Mouse wheel movement module", true, InventorySorter.INSTANCE::wheelModConflicts),
-    ONEITEMOUT(ScrollWheelHandler.ONEITEMOUT, "key.inventorysorter.itemout", 101, "mouseWheelMoving", "Mouse wheel movement module", true, InventorySorter.INSTANCE::wheelModConflicts);
+    SORT(SortingHandler.INSTANCE, "key.inventorysorter.sort", GLFW.GLFW_MOUSE_BUTTON_MIDDLE, "middleClickSorting", "Middle-click sorting module", true, InventorySorter.INSTANCE::sortingModConflicts);
 
     private final Consumer<ContainerContext> worker;
     private final String keyBindingName;

@@ -50,11 +50,6 @@ public class KeyHandler
     private final Map<KeyMapping, Action> keyBindingMap;
 
     KeyHandler() {
-        // Custom input mapping for wheel up (-1)
-        InputConstants.Type.MOUSE.getOrCreate(99);
-        // Custom input mapping for wheel down (-1)
-        InputConstants.Type.MOUSE.getOrCreate(101);
-
         keyBindingMap = Stream.of(Action.values())
                 .map(a -> new AbstractMap.SimpleEntry<>(a, new KeyMapping(a.getKeyBindingName(), KeyConflictContext.GUI,
                         InputConstants.Type.MOUSE, a.getDefaultKeyCode(), "keygroup.inventorysorter")))
@@ -64,7 +59,6 @@ public class KeyHandler
 
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, this::onKey);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, this::onMouse);
-        MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, this::onScroll);
     }
 
     static void init() {
@@ -79,22 +73,12 @@ public class KeyHandler
         onInputEvent(evt, this::mouseClickEvaluate);
     }
 
-    private void onScroll(ScreenEvent.MouseScrollEvent.Post evt) {
-        onInputEvent(evt, this::mouseScrollEvaluate);
-    }
-
     private boolean keyEvaluate(final KeyMapping kb, final ScreenEvent.KeyboardKeyPressedEvent.Pre evt) {
         return kb.matches(evt.getKeyCode(), evt.getScanCode());
     }
 
     private boolean mouseClickEvaluate(final KeyMapping kb, final ScreenEvent.MouseClickedEvent.Pre evt) {
         return kb.matchesMouse(evt.getButton());
-    }
-
-    private boolean mouseScrollEvaluate(final KeyMapping kb, final ScreenEvent.MouseScrollEvent.Post evt) {
-        int dir = (int) Math.signum(evt.getScrollDelta());
-        int keycode = dir + 100;
-        return kb.matchesMouse(keycode);
     }
 
     private <T extends ScreenEvent> void onInputEvent(T evt, BiPredicate<KeyMapping, T> kbTest) {
