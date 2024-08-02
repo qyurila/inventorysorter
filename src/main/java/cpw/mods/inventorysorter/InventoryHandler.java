@@ -148,12 +148,14 @@ public enum InventoryHandler
                 itemcounts.add(holder, stack.getCount());
             }
         }
+        /* Why was this a thing?
         final HashMultiset<ItemStackHolder> entries = HashMultiset.create();
         for (Multiset.Entry<ItemStackHolder> entry : itemcounts.descendingMultiset().entrySet())
         {
             entries.add(entry.getElement(),entry.getCount());
         }
-        return entries;
+        */
+        return itemcounts;
     }
 
     public static class ItemStackComparator implements Comparator<ItemStackHolder>

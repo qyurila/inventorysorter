@@ -128,7 +128,7 @@ public enum SortingHandler implements Consumer<ContainerContext>
             if (Config.CLIENT.sortByCountFirst.get()) {
                 itemsIterator = Multisets.copyHighestCountFirst(itemcounts).entrySet().iterator();
             } else {
-                itemsIterator = Multisets.unmodifiableMultiset(itemcounts).entrySet().iterator();
+                itemsIterator = itemcounts.entrySet().iterator();
             }
         }
         catch (Exception e)
@@ -148,7 +148,7 @@ public enum SortingHandler implements Consumer<ContainerContext>
                 InventorySorter.LOGGER.log(Level.DEBUG, "Slot {} of container {} disallows canTakeStack", ()->slot.index, ()-> containerTypeName);
                 continue;
             }
-            slot.set(ItemStack.EMPTY);
+            // slot.set(ItemStack.EMPTY);
             ItemStack target = ItemStack.EMPTY;
             if (itemCount > 0 && stackHolder != null)
             {
