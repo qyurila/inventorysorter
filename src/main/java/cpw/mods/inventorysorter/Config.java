@@ -51,6 +51,7 @@ public class Config {
                   .comment("Sort by count first")
                   .translation("inventorysorter.config.sortbycountfirst")
                   .define("sortByCountFirst", false);
+            builder.pop();
         }
     }
 
