@@ -153,7 +153,7 @@ public enum SortingHandler implements Consumer<ContainerContext>
             if (itemCount > 0 && stackHolder != null)
             {
                 target = stackHolder.getElement().itemStack.copy();
-                target.setCount(Math.min(itemCount, target.getMaxStackSize()));
+                target.setCount(Math.min(itemCount, slot.getMaxStackSize(target)));
             }
             // The item isn't valid for this slot
             if (!target.isEmpty() && !slot.mayPlace(target)) {
