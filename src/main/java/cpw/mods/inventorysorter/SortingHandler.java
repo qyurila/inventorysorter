@@ -125,7 +125,7 @@ public enum SortingHandler implements Consumer<ContainerContext>
         final Iterator<Multiset.Entry<ItemStackHolder>> itemsIterator;
         try
         {
-            if (Config.CLIENT.sortByCountFirst.get()) {
+            if (Config.ClientConfig.CONFIG.sortByCountFirst.get()) {
                 itemsIterator = Multisets.copyHighestCountFirst(itemcounts).entrySet().iterator();
             } else {
                 itemsIterator = itemcounts.entrySet().iterator();

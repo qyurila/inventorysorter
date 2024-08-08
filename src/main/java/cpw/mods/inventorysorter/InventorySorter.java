@@ -71,8 +71,8 @@ public class InventorySorter
         bus.addListener(this::clientSetup);
         bus.addListener(this::handleimc);
         bus.addListener(this::onConfigLoad);
-        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, Config.SERVER_SPEC);
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, Config.CLIENT_SPEC);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, Config.ServerConfig.SPEC);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, Config.ClientConfig.SPEC);
 
         MinecraftForge.EVENT_BUS.addListener(this::onServerStarting);
     }
@@ -130,15 +130,15 @@ public class InventorySorter
         this.containerblacklist.clear();
 
         // Merge in the config values and the imc values
-        this.slotblacklist.addAll(Config.SERVER.slotBlacklist.get());
-        this.containerblacklist.addAll(Config.SERVER.containerBlacklist.get().stream().map(ResourceLocation::new).collect(Collectors.toSet()));
+        this.slotblacklist.addAll(Config.ServerConfig.CONFIG.slotBlacklist.get());
+        this.containerblacklist.addAll(Config.ServerConfig.CONFIG.containerBlacklist.get().stream().map(ResourceLocation::new).collect(Collectors.toSet()));
         this.slotblacklist.addAll(imcSlotBlacklist);
         this.containerblacklist.addAll(imcContainerBlacklist);
     }
 
     private void updateConfig() {
-        Config.SERVER.containerBlacklist.set(containerblacklist.stream().filter(e -> !imcContainerBlacklist.contains(e)).map(Objects::toString).collect(Collectors.toList()));
-        Config.SERVER.slotBlacklist.set(slotblacklist.stream().filter(e -> !imcSlotBlacklist.contains(e)).collect(Collectors.toList()));
+        Config.ServerConfig.CONFIG.containerBlacklist.set(containerblacklist.stream().filter(e -> !imcContainerBlacklist.contains(e)).map(Objects::toString).collect(Collectors.toList()));
+        Config.ServerConfig.CONFIG.slotBlacklist.set(slotblacklist.stream().filter(e -> !imcSlotBlacklist.contains(e)).collect(Collectors.toList()));
 
         updateBlacklists();
     }

@@ -78,7 +78,7 @@ public enum InventoryHandler
             if (holder1 == holder2) return 0;
 
             int compareResult = 0;
-            switch (Config.CLIENT.sortOrder.get()) {
+            switch (Config.ClientConfig.CONFIG.sortOrder.get()) {
                 case QUARK:
                     compareResult = QuarkSortingHandler.stackCompare(stack1, stack2);
                     break;
