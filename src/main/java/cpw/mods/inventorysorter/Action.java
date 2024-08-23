@@ -28,28 +28,17 @@ import java.util.function.*;
  */
 public enum Action
 {
-    SORT(SortingHandler.INSTANCE, "key.inventorysorter.sort", GLFW.GLFW_MOUSE_BUTTON_MIDDLE, "middleClickSorting", "Middle-click sorting module", true, InventorySorter.INSTANCE::sortingModConflicts),
-    ONEITEMIN(ScrollWheelHandler.ONEITEMIN, "key.inventorysorter.itemin", 99, "mouseWheelMoving", "Mouse wheel movement module", true, InventorySorter.INSTANCE::wheelModConflicts),
-    ONEITEMOUT(ScrollWheelHandler.ONEITEMOUT, "key.inventorysorter.itemout", 101, "mouseWheelMoving", "Mouse wheel movement module", true, InventorySorter.INSTANCE::wheelModConflicts);
+    SORT(SortingHandler.INSTANCE, "key.inventorysorter.sort", GLFW.GLFW_MOUSE_BUTTON_MIDDLE);
 
     private final Consumer<ContainerContext> worker;
     private final String keyBindingName;
     private final int defaultKeyCode;
-    private final String configName;
-    private boolean actionActive;
-    private final String comment;
-    private final boolean implemented;
-    private final Supplier<Boolean> checkForConflicts;
 
-    Action(Consumer<ContainerContext> worker, String keyBindingName, int defaultKeyCode, String configName, String comment, boolean implemented, Supplier<Boolean> checkForConflicts)
+    Action(Consumer<ContainerContext> worker, String keyBindingName, int defaultKeyCode)
     {
         this.worker = worker;
         this.keyBindingName = keyBindingName;
         this.defaultKeyCode = defaultKeyCode;
-        this.configName = configName;
-        this.comment = comment;
-        this.implemented = implemented;
-        this.checkForConflicts = checkForConflicts;
     }
 
     public String getKeyBindingName() {
@@ -71,13 +60,7 @@ public enum Action
         return true;
     }
 
-    public String getConfigName()
-    {
-        return configName;
-    }
-
     public int getDefaultKeyCode() {
         return defaultKeyCode;
     }
-
 }

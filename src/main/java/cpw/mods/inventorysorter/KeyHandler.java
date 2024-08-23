@@ -66,7 +66,6 @@ public class KeyHandler
         var eh = new ScreenEventHandler();
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, eh::onKey);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, eh::onMouse);
-        MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, eh::onScroll);
     }
 
     static void init() {
@@ -84,10 +83,6 @@ public class KeyHandler
         private void onMouse(ScreenEvent.MouseButtonPressed.Pre evt) {
             onInputEvent(evt, KeyHandler.this::mouseClickEvaluate);
         }
-
-        private void onScroll(ScreenEvent.MouseScrolled.Pre evt) {
-            onInputEvent(evt, KeyHandler.this::mouseScrollEvaluate);
-        }
     }
     private boolean keyEvaluate(final KeyMapping kb, final ScreenEvent.KeyPressed.Pre evt) {
         return kb.matches(evt.getKeyCode(), evt.getScanCode());
@@ -95,12 +90,6 @@ public class KeyHandler
 
     private boolean mouseClickEvaluate(final KeyMapping kb, final ScreenEvent.MouseButtonPressed.Pre evt) {
         return kb.matchesMouse(evt.getButton());
-    }
-
-    private boolean mouseScrollEvaluate(final KeyMapping kb, final ScreenEvent.MouseScrolled.Pre evt) {
-        int dir = (int) Math.signum(evt.getScrollDelta());
-        int keycode = dir + 100;
-        return kb.matchesMouse(keycode);
     }
 
     private <T extends ScreenEvent> void onInputEvent(T evt, BiPredicate<KeyMapping, T> kbTest) {

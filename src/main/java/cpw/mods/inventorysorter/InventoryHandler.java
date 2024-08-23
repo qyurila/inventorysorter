@@ -24,15 +24,15 @@ import com.google.common.primitives.*;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 
-import java.lang.reflect.*;
 import java.util.*;
 
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BrewingStandBlockEntity;
 import net.minecraft.world.level.block.entity.FurnaceBlockEntity;
-import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 
 /**
  * @author cpw
@@ -40,100 +40,12 @@ import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 public enum InventoryHandler
 {
     INSTANCE;
-    public final Method mergeStack = getMergeStackMethod();
-
-    private Method getMergeStackMethod()
-    {
-
-        Method m = ObfuscationReflectionHelper.findMethod(AbstractContainerMenu.class, "m_"+"38903_", ItemStack.class, int.class, int.class, boolean.class);
-        m.setAccessible(true);
-        return m;
-    }
-
-    public boolean mergeStack(AbstractContainerMenu container, ItemStack stack, int low, int high, boolean rev)
-    {
-        try
-        {
-            //noinspection ConstantConditions
-            return (Boolean)mergeStack.invoke(container, stack, low, high, rev);
-        } catch (Exception e)
-        {
-            return false;
-        }
-    }
-
-    public ItemStack getItemStack(ContainerContext ctx)
-    {
-        return getItemStack(ctx.slot);
-    }
-
-    public ItemStack getItemStack(Slot slot)
-    {
-        if (slot.getSlotIndex() < 0) return ItemStack.EMPTY;
-        return slot.getItem();
-    }
-
-    public void moveItemToOtherInventory(ContainerContext ctx, ItemStack is, int targetLow, int targetHigh, boolean slotIsDestination)
-    {
-        for (int i = targetLow; i < targetHigh; i++)
-        {
-            if (!ctx.player.containerMenu.getSlot(i).mayPlace(is))
-            {
-                continue;
-            }
-            if (mergeStack(ctx.player.containerMenu, is, i, i+1, slotIsDestination))
-            {
-                break;
-            }
-        }
-    }
-
-    static Map<Container,ImmutableList<Container>> preferredOrders = ImmutableMap.of(
-            ContainerContext.PLAYER_HOTBAR, ImmutableList.of(ContainerContext.PLAYER_OFFHAND, ContainerContext.PLAYER_MAIN),
-            ContainerContext.PLAYER_OFFHAND, ImmutableList.of(ContainerContext.PLAYER_HOTBAR, ContainerContext.PLAYER_MAIN),
-            ContainerContext.PLAYER_MAIN, ImmutableList.of(ContainerContext.PLAYER_OFFHAND, ContainerContext.PLAYER_HOTBAR)
-    );
-    public Slot findStackWithItem(ItemStack is, final ContainerContext ctx)
-    {
-        if (is.getMaxStackSize() == 1) return null;
-
-        List<Map.Entry<Container, InventoryMapping>> entries = getSortedMapping(ctx);
-        for (Map.Entry<Container, InventoryMapping> ent : entries)
-        {
-            Container inv = ent.getKey();
-            if (inv == ctx.slotMapping.inv) continue;
-            for (int i = ent.getValue().begin; i <= ent.getValue().end; i++)
-            {
-                final Slot slot = ctx.player.containerMenu.getSlot(i);
-                if (!slot.mayPickup(ctx.player)) continue;
-                ItemStack sis = slot.getItem();
-                if (sis != null && sis.getItem() == is.getItem() && ItemStack.tagMatches(sis, is))
-                {
-                    return slot;
-                }
-            }
-        }
-        return null;
-    }
-
-    List<Map.Entry<Container, InventoryMapping>> getSortedMapping(final ContainerContext ctx)
-    {
-        List<Map.Entry<Container, InventoryMapping>> entries = Lists.newArrayList(ctx.mapping.entrySet());
-        if (preferredOrders.containsKey(ctx.slotMapping.inv)) {
-            Collections.sort(entries, (o1, o2) -> {
-                int idx1 = preferredOrders.get(ctx.slotMapping.inv).indexOf(o1.getKey());
-                int idx2 = preferredOrders.get(ctx.slotMapping.inv).indexOf(o2.getKey());
-                return Ints.compare(idx1,idx2);
-            });
-        }
-        return entries;
-    }
 
     public Multiset<ItemStackHolder> getInventoryContent(ContainerContext context)
     {
         int slotLow = context.slotMapping.begin;
         int slotHigh = context.slotMapping.end + 1;
-        SortedMultiset<ItemStackHolder> itemcounts = TreeMultiset.create(new ItemStackComparator());
+        Multiset<ItemStackHolder> itemcounts = HashMultiset.create();
         for (int i = slotLow; i < slotHigh; i++)
         {
             final Slot slot = context.player.containerMenu.getSlot(i);
@@ -141,14 +53,14 @@ public enum InventoryHandler
             ItemStack stack = slot.getItem();
             if (!stack.isEmpty())
             {
-                ItemStackHolder ish = new ItemStackHolder(stack.copy());
-                itemcounts.add(ish, stack.getCount());
+                ItemStackHolder holder = new ItemStackHolder(stack.copy());
+                itemcounts.add(holder, stack.getCount());
             }
         }
-        final HashMultiset<ItemStackHolder> entries = HashMultiset.create();
-        for (Multiset.Entry<ItemStackHolder> entry : itemcounts.descendingMultiset().entrySet())
+        final SortedMultiset<ItemStackHolder> entries = TreeMultiset.create(new ItemStackComparator());
+        for (Multiset.Entry<ItemStackHolder> entry : itemcounts.entrySet())
         {
-            entries.add(entry.getElement(),entry.getCount());
+            entries.add(entry.getElement(), entry.getCount());
         }
         return entries;
     }
@@ -156,15 +68,48 @@ public enum InventoryHandler
     public static class ItemStackComparator implements Comparator<ItemStackHolder>
     {
         @Override
-        public int compare(ItemStackHolder o1, ItemStackHolder o2)
+        public int compare(ItemStackHolder holder1, ItemStackHolder holder2)
         {
-            if (o1 == o2) return 0;
-            if (o1.is == o2.is) return 0;
-            if (o1.is.getItem() != o2.is.getItem())
-                return String.valueOf(o1.is.getItem().builtInRegistryHolder().key().location()).compareTo(String.valueOf(o2.is.getItem().builtInRegistryHolder().key().location()));
-            if (ItemStack.tagMatches(o1.is, o2.is))
-                return 0;
-            return Ints.compare(System.identityHashCode(o1.is), System.identityHashCode(o2.is));
+            ItemStack stack1 = holder1.itemStack;
+            ItemStack stack2 = holder2.itemStack;
+
+            if (stack1.isEmpty()) return -1;
+            if (stack2.isEmpty()) return 1;
+            if (holder1 == holder2) return 0;
+
+            int compareResult = 0;
+            switch (Config.ClientConfig.CONFIG.sortOrder.get()) {
+                case QUARK:
+                    compareResult = QuarkSortingHandler.stackCompare(stack1, stack2);
+                    break;
+                case CREATIVE:
+                    CreativeModeTab category1 = stack1.getItem().getItemCategory();
+                    CreativeModeTab category2 = stack2.getItem().getItemCategory();
+
+                    if (category1 == null && category2 == null) break;
+                    if (category1 == null) return -1;
+                    if (category2 == null) return 1;
+
+                    compareResult = Ints.compare(category1.getId(), category2.getId());
+                    if (compareResult == 0) {
+                        // TODO find out item ordering inside a creative tab
+                        compareResult = Ints.compare(Item.getId(stack1.getItem()), Item.getId(stack2.getItem()));
+                    }
+                    break;
+                case ITEM_ID:
+                    compareResult = Ints.compare(Item.getId(stack1.getItem()), Item.getId(stack2.getItem()));
+                    break;
+                case ITEM_NAME:
+                    compareResult = stack1.getItem().getName(stack1).getString().compareTo(stack2.getItem().getName(stack2).getString());
+                    break;
+                case DISPLAY_NAME:
+                    compareResult = stack1.getHoverName().getString().compareTo(stack2.getHoverName().getString());
+                    break;
+                default:
+                    return 0;
+            }
+
+            return compareResult != 0 ? compareResult : QuarkSortingHandler.FALLBACK_COMPARATOR.compare(stack1, stack2);
         }
     }
 

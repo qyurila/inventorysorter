@@ -75,7 +75,7 @@ dependencies {
 }
 
 task makeChangelog(type: se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask) {
-    file = file('CHANGELOG.md')
+    file = project.file('CHANGELOG.md')
     fromRepo = file(".")
     untaggedName = "Current release ${version}"
     fromRef = project.findProperty('changelogStart') ?: '13.0'

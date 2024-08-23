@@ -31,7 +31,6 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.InterModComms;
-import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -46,7 +45,6 @@ import net.minecraftforge.registries.RegistryObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -79,7 +77,8 @@ public class InventorySorter
         bus.addListener(this::preinit);
         bus.addListener(this::handleimc);
         bus.addListener(this::onConfigLoad);
-        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, Config.SPEC);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, Config.ServerConfig.SPEC);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, Config.ClientConfig.SPEC);
 
         COMMAND_ARGUMENT_TYPES.register(bus);
         MinecraftForge.EVENT_BUS.addListener(this::onServerStarting);
@@ -112,7 +111,7 @@ public class InventorySorter
         if ("containerblacklist".equals(msg.method())) {
             Object message = msg.messageSupplier().get();
             if (message instanceof final ResourceLocation blackListTarget && imcContainerBlacklist.add(blackListTarget)) {
-                debugLog("ContainerBlacklist added {}", () -> new String[] {blackListTarget.toString()});
+                debugLog("ContainerBlacklist added {}", () -> new String[]{blackListTarget.toString()});
             } else {
                 LOGGER.warn("Rejected containerblacklist due to bad messageSupplier type. Please supply a [ResourceLocation]");
             }
@@ -135,29 +134,21 @@ public class InventorySorter
         this.containerblacklist.clear();
 
         // Merge in the config values and the imc values
-        this.slotblacklist.addAll(Config.CONFIG.slotBlacklist.get());
-        this.containerblacklist.addAll(Config.CONFIG.containerBlacklist.get().stream().map(ResourceLocation::new).collect(Collectors.toSet()));
+        this.slotblacklist.addAll(Config.ServerConfig.CONFIG.slotBlacklist.get());
+        this.containerblacklist.addAll(Config.ServerConfig.CONFIG.containerBlacklist.get().stream().map(ResourceLocation::new).collect(Collectors.toSet()));
         this.slotblacklist.addAll(imcSlotBlacklist);
         this.containerblacklist.addAll(imcContainerBlacklist);
     }
 
     private void updateConfig() {
-        Config.CONFIG.containerBlacklist.set(containerblacklist.stream().filter(e -> !imcContainerBlacklist.contains(e)).map(Objects::toString).collect(Collectors.toList()));
-        Config.CONFIG.slotBlacklist.set(slotblacklist.stream().filter(e -> !imcSlotBlacklist.contains(e)).collect(Collectors.toList()));
+        Config.ServerConfig.CONFIG.containerBlacklist.set(containerblacklist.stream().filter(e -> !imcContainerBlacklist.contains(e)).map(Objects::toString).collect(Collectors.toList()));
+        Config.ServerConfig.CONFIG.slotBlacklist.set(slotblacklist.stream().filter(e -> !imcSlotBlacklist.contains(e)).collect(Collectors.toList()));
 
         updateBlacklists();
     }
 
     void onConfigLoad(ModConfigEvent configEvent) {
         updateBlacklists();
-    }
-
-    boolean wheelModConflicts() {
-        return ModList.get().isLoaded("mousetweaks");
-    }
-
-    boolean sortingModConflicts() {
-        return false;
     }
 
     final void debugLog(String message, Supplier<String[]> args) {
