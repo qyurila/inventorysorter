@@ -35,6 +35,7 @@ import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
@@ -148,7 +149,9 @@ public class InventorySorter
     }
 
     void onConfigLoad(ModConfigEvent configEvent) {
-        updateBlacklists();
+        if (configEvent.getConfig().getSpec() == Config.ServerConfig.SPEC) {
+            updateConfig();
+        }
     }
 
     final void debugLog(String message, Supplier<String[]> args) {
