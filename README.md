@@ -57,8 +57,8 @@ This means it is very reliable and very fast. It should work with all containers
 and tries to respect canExtract/isItemValid (it will avoid slots that are marked that way).
 
 - The 1.18.2 version now **works with Sophisticated Backpacks/Storages** and other mods that have **increased stack size**. (1.19.2 already worked with it)
-- Attempted to fix the issue with Curios slot etc., where the slots were cleared when triggering the sort.
-  not sure if it would have any side effects, but it wouldn't erase anything the original doesn't, at least.
+- Made a failsafe to prevent items from being deleted in some cases, such as Curios slots etc.
+  - TODO: Make a PR for the original repo, after testing enough 
 
 
 ## Thanks to
