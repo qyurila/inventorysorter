@@ -113,7 +113,7 @@ public enum SortingHandler implements Consumer<ContainerContext>
         }
     }
     private void compactInventory(final ContainerContext context, final Multiset<ItemStackHolder> itemcounts) {
-        final ResourceLocation containerTypeName = lookupContainerTypeName(context.player.containerMenu);
+        final ResourceLocation containerTypeName = lookupContainerTypeName(context.slotMapping.container);
 
         InventorySorter.INSTANCE.lastContainerType = containerTypeName;
         if (InventorySorter.INSTANCE.containerblacklist.contains(containerTypeName)) {
@@ -141,6 +141,8 @@ public enum SortingHandler implements Consumer<ContainerContext>
 
         Multiset.Entry<ItemStackHolder> stackHolder = itemsIterator.hasNext() ? itemsIterator.next() : null;
         int itemCount = stackHolder != null ? stackHolder.getCount() : 0;
+
+        ItemStack[] slotBuffer = new ItemStack[slotHigh];
         for (int i = slotLow; i < slotHigh; i++)
         {
             final Slot slot = context.player.containerMenu.getSlot(i);
@@ -148,7 +150,7 @@ public enum SortingHandler implements Consumer<ContainerContext>
                 InventorySorter.LOGGER.log(Level.DEBUG, "Slot {} of container {} disallows canTakeStack", ()->slot.index, ()-> containerTypeName);
                 continue;
             }
-            // slot.set(ItemStack.EMPTY);
+            slotBuffer[i] = ItemStack.EMPTY;
             ItemStack target = ItemStack.EMPTY;
             if (itemCount > 0 && stackHolder != null)
             {
@@ -161,13 +163,23 @@ public enum SortingHandler implements Consumer<ContainerContext>
                 InventorySorter.LOGGER.log(Level.DEBUG, "Item {} is not valid in slot {} of container {}", ()->trg, ()->slot.index, ()-> containerTypeName);
                 continue;
             }
-            slot.set(target.isEmpty() ? ItemStack.EMPTY : target);
+            slotBuffer[i] = target.isEmpty() ? ItemStack.EMPTY : target;
             itemCount -= !target.isEmpty() ? target.getCount() : 0;
             if (itemCount == 0)
             {
                 stackHolder = itemsIterator.hasNext() ? itemsIterator.next() : null;
                 itemCount = stackHolder != null ? stackHolder.getCount() : 0;
             }
+        }
+        if (stackHolder != null)
+        {
+            InventorySorter.LOGGER.log(Level.INFO, "Some items were about to be deleted, sorting canceled");
+            return;
+        }
+        for (int i = slotLow; i < slotHigh; i++)
+        {
+            Slot slot = context.player.containerMenu.getSlot(i);
+            slot.set(slotBuffer[i]);
         }
     }
 
