@@ -1,6 +1,7 @@
 package cpw.mods.inventorysorter;
 
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -211,11 +212,11 @@ public class QuarkSortingHandler {
 		ArmorItem armor1 = (ArmorItem) stack1.getItem();
 		ArmorItem armor2 = (ArmorItem) stack2.getItem();
 
-		EquipmentSlot slot1 = armor1.getSlot();
-		EquipmentSlot slot2 = armor2.getSlot();
+		EquipmentSlot slot1 = armor1.getEquipmentSlot();
+		EquipmentSlot slot2 = armor2.getEquipmentSlot();
 
 		if (slot1 == slot2)
-			return armor2.getMaterial().getDefenseForSlot(slot2) - armor2.getMaterial().getDefenseForSlot(slot1);
+			return armor2.getMaterial().getDefenseForType(armor2.getType()) - armor2.getMaterial().getDefenseForType(armor1.getType());
 
 		return slot2.getIndex() - slot1.getIndex();
 	}
@@ -256,7 +257,7 @@ public class QuarkSortingHandler {
 		Potion potion1 = PotionUtils.getPotion(stack1);
 		Potion potion2 = PotionUtils.getPotion(stack2);
 
-		return Registry.POTION.getId(potion2) - Registry.POTION.getId(potion1);
+		return BuiltInRegistries.POTION.getId(potion2) - BuiltInRegistries.POTION.getId(potion1);
 	}
 
 	public static int nameCompare(ItemStack stack1, ItemStack stack2) {

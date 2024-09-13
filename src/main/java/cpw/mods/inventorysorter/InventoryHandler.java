@@ -29,6 +29,7 @@ import java.util.*;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BrewingStandBlockEntity;
@@ -83,18 +84,20 @@ public enum InventoryHandler
                     compareResult = QuarkSortingHandler.stackCompare(stack1, stack2);
                     break;
                 case CREATIVE:
-                    CreativeModeTab category1 = stack1.getItem().getItemCategory();
-                    CreativeModeTab category2 = stack2.getItem().getItemCategory();
+                    Item item1 = stack1.getItem();
+                    Item item2 = stack2.getItem();
 
-                    if (category1 == null && category2 == null) break;
-                    if (category1 == null) return -1;
-                    if (category2 == null) return 1;
+                    for (CreativeModeTab tab : CreativeModeTabs.tabs()) {
+                        boolean isItem1Found = tab.contains(item1.getDefaultInstance());
+                        boolean isItem2Found = tab.contains(item2.getDefaultInstance());
 
-                    compareResult = Ints.compare(category1.getId(), category2.getId());
-                    if (compareResult == 0) {
-                        // TODO find out item ordering inside a creative tab
-                        compareResult = Ints.compare(Item.getId(stack1.getItem()), Item.getId(stack2.getItem()));
+                        if (isItem1Found || isItem2Found) {
+                            if (!isItem1Found) return -1;
+                            if (!isItem2Found) return 1;
+                            break;
+                        }
                     }
+                    compareResult = Ints.compare(Item.getId(stack1.getItem()), Item.getId(stack2.getItem()));
                     break;
                 case ITEM_ID:
                     compareResult = Ints.compare(Item.getId(stack1.getItem()), Item.getId(stack2.getItem()));
