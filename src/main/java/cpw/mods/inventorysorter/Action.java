@@ -19,35 +19,26 @@
 package cpw.mods.inventorysorter;
 
 import net.minecraft.world.inventory.Slot;
-import net.minecraftforge.common.ForgeConfigSpec;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 import java.util.function.*;
-import java.util.stream.Collectors;
 
 /**
  * Created by cpw on 08/01/16.
  */
 public enum Action
 {
-    SORT(SortingHandler.INSTANCE, "key.inventorysorter.sort", GLFW.GLFW_MOUSE_BUTTON_MIDDLE, Config.ClientConfig.CONFIG.sortingModule),
-    ONEITEMIN(ScrollWheelHandler.ONEITEMIN, "key.inventorysorter.itemin", 99, Config.ClientConfig.CONFIG.wheelmoveModule),
-    ONEITEMOUT(ScrollWheelHandler.ONEITEMOUT, "key.inventorysorter.itemout", 101, Config.ClientConfig.CONFIG.wheelmoveModule);
+    SORT(SortingHandler.INSTANCE, "key.inventorysorter.sort", GLFW.GLFW_MOUSE_BUTTON_MIDDLE);
 
     private final Consumer<ContainerContext> worker;
     private final String keyBindingName;
     private final int defaultKeyCode;
-    private final ForgeConfigSpec.ConfigValue<Boolean> configValue;
 
-    Action(Consumer<ContainerContext> worker, String keyBindingName, int defaultKeyCode, ForgeConfigSpec.ConfigValue<Boolean> configValue)
+    Action(Consumer<ContainerContext> worker, String keyBindingName, int defaultKeyCode)
     {
         this.worker = worker;
         this.keyBindingName = keyBindingName;
         this.defaultKeyCode = defaultKeyCode;
-        this.configValue = configValue;
     }
 
     public String getKeyBindingName() {
@@ -66,10 +57,11 @@ public enum Action
 
     public boolean isActive()
     {
-        return configValue.get();
+        return true;
     }
 
     public int getDefaultKeyCode() {
         return defaultKeyCode;
     }
+
 }

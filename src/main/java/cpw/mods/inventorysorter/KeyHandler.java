@@ -18,12 +18,15 @@
 
 package cpw.mods.inventorysorter;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.KeyMapping;
 import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.level.GameType;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.client.settings.KeyConflictContext;
@@ -63,7 +66,6 @@ public class KeyHandler
         var eh = new ScreenEventHandler();
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, eh::onKey);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, eh::onMouse);
-        MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, eh::onScroll);
     }
 
     static void init() {
@@ -81,10 +83,6 @@ public class KeyHandler
         private void onMouse(ScreenEvent.MouseButtonPressed.Pre evt) {
             onInputEvent(evt, KeyHandler.this::mouseClickEvaluate);
         }
-
-        private void onScroll(ScreenEvent.MouseScrolled.Pre evt) {
-            onInputEvent(evt, KeyHandler.this::mouseScrollEvaluate);
-        }
     }
     private boolean keyEvaluate(final KeyMapping kb, final ScreenEvent.KeyPressed.Pre evt) {
         return kb.matches(evt.getKeyCode(), evt.getScanCode());
@@ -94,26 +92,28 @@ public class KeyHandler
         return kb.matchesMouse(evt.getButton());
     }
 
-    private boolean mouseScrollEvaluate(final KeyMapping kb, final ScreenEvent.MouseScrolled.Pre evt) {
-        int dir = (int) Math.signum(evt.getScrollDelta());
-        int keycode = dir + 100;
-        return kb.matchesMouse(keycode);
-    }
-
     private <T extends ScreenEvent> void onInputEvent(T evt, BiPredicate<KeyMapping, T> kbTest) {
-        final Screen gui = evt.getScreen();
-        if (!(gui instanceof AbstractContainerScreen && !(gui instanceof CreativeModeInventoryScreen))) {
+        // Don't sort on spectator
+        MultiPlayerGameMode gameMode = Minecraft.getInstance().gameMode;
+        if (gameMode != null && gameMode.getPlayerMode() == GameType.SPECTATOR) {
             return;
         }
-        final AbstractContainerScreen guiContainer = (AbstractContainerScreen) gui;
+
+        final Screen gui = evt.getScreen();
+        if (!(gui instanceof final AbstractContainerScreen<?> guiContainer && !(gui instanceof CreativeModeInventoryScreen))) {
+            return;
+        }
+
         Slot slot = guiContainer.getSlotUnderMouse();
         if (!ContainerContext.validSlot(slot)) {
             InventorySorter.LOGGER.log(Level.DEBUG, "Skipping action handling for blacklisted slot");
             return;
         }
+
         final Optional<Action> action = keyBindingMap.entrySet().stream().filter(e -> kbTest.test(e.getKey(), evt)).
                 map(Map.Entry::getValue).findFirst();
-        if (!action.isPresent()) return;
+
+        if (action.isEmpty()) return;
 
         final Action triggeredAction = action.get();
         if (triggeredAction.isActive())

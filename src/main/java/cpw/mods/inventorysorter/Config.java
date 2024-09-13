@@ -19,6 +19,7 @@ public class Config {
 
         final ForgeConfigSpec.ConfigValue<List<? extends String>> containerBlacklist;
         final ForgeConfigSpec.ConfigValue<List<? extends String>> slotBlacklist;
+
         private ServerConfig(ForgeConfigSpec.Builder builder) {
             builder.comment("Inventory sorter blacklists");
             builder.push("blacklists");
@@ -34,6 +35,15 @@ public class Config {
         }
     }
     public static class ClientConfig {
+        public enum SortOrder
+        {
+            QUARK,
+            CREATIVE,
+            ITEM_ID,
+            ITEM_NAME,
+            DISPLAY_NAME,
+        }
+
         static final ClientConfig CONFIG;
         static final ForgeConfigSpec SPEC;
 
@@ -42,22 +52,21 @@ public class Config {
             CONFIG = conf.getLeft();
             SPEC = conf.getRight();
         }
-        final ForgeConfigSpec.ConfigValue<Boolean> sortingModule;
-        final ForgeConfigSpec.ConfigValue<Boolean> wheelmoveModule;
+
+        final ForgeConfigSpec.EnumValue<SortOrder> sortOrder;
+        final ForgeConfigSpec.BooleanValue sortByCountFirst;
 
         private ClientConfig(ForgeConfigSpec.Builder builder) {
-            builder.comment("Inventory sorter modules");
-            builder.push("modules");
-            sortingModule = builder
-                    .comment("Sorting module")
-                    .translation("inventorysorter.config.sortingmodule")
-                    .define("sortingmodule", true);
-
-            wheelmoveModule = builder
-                    .comment("Wheel move module")
-                    .translation("inventorysorter.config.wheelmovemodule")
-                    .define("wheelmovemodule", true);
-
+            builder.comment("Inventory sorter");
+            builder.push("sortingRules");
+            sortOrder = builder
+                    .comment("Sort order")
+                    .translation("inventorysorter.config.sortorder")
+                    .defineEnum("sortOrder", SortOrder.QUARK);
+            sortByCountFirst = builder
+                    .comment("Sort by count first")
+                    .translation("inventorysorter.config.sortbycountfirst")
+                    .define("sortByCountFirst", false);
             builder.pop();
         }
     }

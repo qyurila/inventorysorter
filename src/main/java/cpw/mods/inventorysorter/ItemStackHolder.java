@@ -25,24 +25,24 @@ import net.minecraft.world.item.ItemStack;
  */
 public class ItemStackHolder
 {
-    public final ItemStack is;
+    public final ItemStack itemStack;
 
     ItemStackHolder(ItemStack stack)
     {
-        this.is = stack;
+        this.itemStack = stack;
     }
 
     @Override
     public int hashCode()
     {
-        return is.getItem().hashCode() * 31 + (is.hasTag() ? is.getTag().hashCode() : 0);
+        return itemStack.getItem().hashCode() * 31 + (itemStack.hasTag() ? itemStack.getTag().hashCode() : 0);
     }
 
     @Override
     public boolean equals(Object obj)
     {
         if (!(obj instanceof ItemStackHolder)) return false;
-        ItemStackHolder ish = (ItemStackHolder)obj;
-        return is.getItem() == ish.is.getItem() && ItemStack.isSameItemSameTags(is, ish.is);
+        ItemStackHolder holder = (ItemStackHolder)obj;
+        return itemStack.getItem() == holder.itemStack.getItem() && ItemStack.isSameItemSameTags(itemStack, holder.itemStack);
     }
 }

@@ -18,7 +18,6 @@
 
 package cpw.mods.inventorysorter;
 
-import com.google.common.base.*;
 import com.google.common.collect.*;
 import net.minecraft.core.Registry;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -28,7 +27,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.*;
 
-import javax.annotation.*;
+import java.util.Iterator;
 import java.util.function.*;
 
 import net.minecraft.world.inventory.CraftingContainer;
@@ -125,10 +124,14 @@ public enum SortingHandler implements Consumer<ContainerContext>
         }
 
         InventorySorter.INSTANCE.debugLog("Container \"{}\" being sorted", ()->new String[] {containerTypeName.toString()});
-        final UnmodifiableIterator<Multiset.Entry<ItemStackHolder>> itemsIterator;
+        final Iterator<Multiset.Entry<ItemStackHolder>> itemsIterator;
         try
         {
-            itemsIterator = Multisets.copyHighestCountFirst(itemcounts).entrySet().iterator();
+            if (Config.ClientConfig.CONFIG.sortByCountFirst.get()) {
+                itemsIterator = Multisets.copyHighestCountFirst(itemcounts).entrySet().iterator();
+            } else {
+                itemsIterator = itemcounts.entrySet().iterator();
+            }
         }
         catch (Exception e)
         {
@@ -140,6 +143,8 @@ public enum SortingHandler implements Consumer<ContainerContext>
 
         Multiset.Entry<ItemStackHolder> stackHolder = itemsIterator.hasNext() ? itemsIterator.next() : null;
         int itemCount = stackHolder != null ? stackHolder.getCount() : 0;
+
+        ItemStack[] slotBuffer = new ItemStack[slotHigh];
         for (int i = slotLow; i < slotHigh; i++)
         {
             final Slot slot = context.player.containerMenu.getSlot(i);
@@ -147,11 +152,11 @@ public enum SortingHandler implements Consumer<ContainerContext>
                 InventorySorter.LOGGER.log(Level.DEBUG, "Slot {} of container {} disallows canTakeStack", ()->slot.index, ()-> containerTypeName);
                 continue;
             }
-            slot.set(ItemStack.EMPTY);
+            slotBuffer[i] = ItemStack.EMPTY;
             ItemStack target = ItemStack.EMPTY;
             if (itemCount > 0 && stackHolder != null)
             {
-                target = stackHolder.getElement().is.copy();
+                target = stackHolder.getElement().itemStack.copy();
                 target.setCount(Math.min(itemCount, slot.getMaxStackSize(target)));
             }
             // The item isn't valid for this slot
@@ -160,13 +165,23 @@ public enum SortingHandler implements Consumer<ContainerContext>
                 InventorySorter.LOGGER.log(Level.DEBUG, "Item {} is not valid in slot {} of container {}", ()->trg, ()->slot.index, ()-> containerTypeName);
                 continue;
             }
-            slot.set(target.isEmpty() ? ItemStack.EMPTY : target);
+            slotBuffer[i] = target.isEmpty() ? ItemStack.EMPTY : target;
             itemCount -= !target.isEmpty() ? target.getCount() : 0;
             if (itemCount == 0)
             {
                 stackHolder = itemsIterator.hasNext() ? itemsIterator.next() : null;
                 itemCount = stackHolder != null ? stackHolder.getCount() : 0;
             }
+        }
+        if (stackHolder != null)
+        {
+            InventorySorter.LOGGER.log(Level.INFO, "Some items were about to be deleted, sorting canceled");
+            return;
+        }
+        for (int i = slotLow; i < slotHigh; i++)
+        {
+            Slot slot = context.player.containerMenu.getSlot(i);
+            slot.set(slotBuffer[i]);
         }
     }
 
