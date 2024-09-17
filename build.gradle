@@ -103,7 +103,7 @@ curseforge {
         changelog = file('CHANGELOG.md')
         changelogType = 'markdown'
         releaseType = project.findProperty('releaseType') ?: 'alpha'
-        addGameVersion '1.20'
+        addGameVersion '1.20.1'
     }
     options {
         javaVersionAutoDetect = true // defaults to true
@@ -130,7 +130,7 @@ jar {
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
-//    archiveAppendix MC_VERSION
+    archiveAppendix = MC_VERSION
 }
 
 def reobfFile = file("$buildDir/reobfJar/output.jar")

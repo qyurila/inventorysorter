@@ -19,11 +19,13 @@
 package cpw.mods.inventorysorter;
 
 import com.google.common.collect.*;
-import net.minecraft.core.Registry;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.*;
 
@@ -32,6 +34,8 @@ import java.util.function.*;
 
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
+
+import static cpw.mods.inventorysorter.Config.ClientConfig.SortOrder.CREATIVE;
 
 /**
  * @author cpw
@@ -45,6 +49,15 @@ public enum SortingHandler implements Consumer<ContainerContext>
         if (context == null) throw new NullPointerException("WHUT");
         // Ignore if we can't find ourselves in the slot set
         if (context.slotMapping == null) return;
+
+        // Creative tabs are only populated when the creative menu is opened for the first time
+        // so we should populate them manually for it to work in the survival mode
+        if (Config.ClientConfig.CONFIG.sortOrder.get() == CREATIVE && !CreativeModeTabs.tabs().get(0).hasAnyItems()) {
+            LocalPlayer player = Minecraft.getInstance().player;
+            if (player == null) return;
+            CreativeModeTabs.tryRebuildTabContents(player.connection.enabledFeatures(), true,
+                    player.clientLevel.registryAccess());
+        }
         final Multiset<ItemStackHolder> itemcounts = InventoryHandler.INSTANCE.getInventoryContent(context);
 
         if (context.slot.container instanceof CraftingContainer)

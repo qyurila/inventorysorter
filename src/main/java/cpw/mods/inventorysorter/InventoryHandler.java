@@ -87,17 +87,27 @@ public enum InventoryHandler
                     Item item1 = stack1.getItem();
                     Item item2 = stack2.getItem();
 
-                    for (CreativeModeTab tab : CreativeModeTabs.tabs()) {
+                    for (CreativeModeTab tab : CreativeModeTabs.allTabs()) {
                         boolean isItem1Found = tab.contains(item1.getDefaultInstance());
                         boolean isItem2Found = tab.contains(item2.getDefaultInstance());
 
                         if (isItem1Found || isItem2Found) {
-                            if (!isItem1Found) return -1;
-                            if (!isItem2Found) return 1;
+                            if (!isItem2Found) return -1;
+                            if (!isItem1Found) return 1;
+
+                            for (ItemStack stack : tab.getDisplayItems()) {
+                                if (stack.getItem() == item1) {
+                                    compareResult = -1;
+                                    break;
+                                }
+                                if (stack.getItem() == item2) {
+                                    compareResult = 1;
+                                    break;
+                                }
+                            }
                             break;
                         }
                     }
-                    compareResult = Ints.compare(Item.getId(stack1.getItem()), Item.getId(stack2.getItem()));
                     break;
                 case ITEM_ID:
                     compareResult = Ints.compare(Item.getId(stack1.getItem()), Item.getId(stack2.getItem()));
