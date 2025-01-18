@@ -99,13 +99,15 @@ public enum SortingHandler implements Consumer<ContainerContext>
         ItemStack[] slotBuffer = new ItemStack[slotHigh];
         for (int i = slotLow; i < slotHigh; i++)
         {
+            slotBuffer[i] = ItemStack.EMPTY;
+
             final Slot slot = context.player.containerMenu.getSlot(i);
             if (!slot.mayPickup(context.player) && slot.hasItem()) {
                 InventorySorter.LOGGER.log(Level.DEBUG, "Slot {} of container {} disallows canTakeStack", () -> slot.index, () -> containerTypeName);
+                slotBuffer[i] = slot.getItem();
                 continue;
             }
 
-            slotBuffer[i] = ItemStack.EMPTY;
             ItemStack target = ItemStack.EMPTY;
             if (itemCount > 0 && stackHolder != null)
             {
