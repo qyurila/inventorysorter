@@ -19,6 +19,7 @@ public class Config {
 
         final ForgeConfigSpec.ConfigValue<List<? extends String>> containerBlacklist;
         final ForgeConfigSpec.ConfigValue<List<? extends String>> slotBlacklist;
+        final ForgeConfigSpec.ConfigValue<List<? extends String>> abortOnFirstSlotTypes;
 
         private ServerConfig(ForgeConfigSpec.Builder builder) {
             builder.comment("Inventory sorter blacklists");
@@ -30,7 +31,15 @@ public class Config {
             slotBlacklist = builder
                     .comment("Slot type blacklist")
                     .translation("inventorysorter.config.slotblacklist")
-                    .defineList("slotBlacklist", new ArrayList<>(), t -> true);
+                    .defineList("slotBlacklist", ArrayList::new, t -> true);
+            abortOnFirstSlotTypes = builder
+                    .comment("Abort sorting if first slot is one of these types")
+                    .translation("inventorysorter.config.abortonfirstslottypes")
+                    .defineList("abortOnFirstSlotTypes", () -> {
+                        List<String> defaults = new ArrayList<>();
+                        defaults.add("SlotIronFurnaceInput");
+                        return defaults;
+                    }, t -> true);
             builder.pop();
         }
     }

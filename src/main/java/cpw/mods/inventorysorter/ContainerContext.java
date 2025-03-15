@@ -40,6 +40,17 @@ class ContainerContext
         this.player = playerEntity;
         Map<Container, InventoryHandler.InventoryMapping> mapping = new HashMap<>();
         final AbstractContainerMenu openContainer = playerEntity.containerMenu;
+
+        // Check if the first slot matches any of the configured types to abort on
+        if (!openContainer.slots.isEmpty()) {
+            String firstSlotType = openContainer.slots.get(0).getClass().getSimpleName();
+            if (Config.ServerConfig.CONFIG.abortOnFirstSlotTypes.get().contains(firstSlotType)) {
+                this.slotMapping = null;
+                this.mapping = ImmutableBiMap.of();
+                return;
+            }
+        }
+
         openContainer.slots.stream().filter(ContainerContext::validSlot).forEach(sl->
         {
             final InventoryHandler.InventoryMapping inventoryMapping = mapping.computeIfAbsent(sl.container, k -> new InventoryHandler.InventoryMapping(sl.container, openContainer, sl.container, sl));
