@@ -55,6 +55,7 @@ public class Config {
 
         final ForgeConfigSpec.EnumValue<SortOrder> sortOrder;
         final ForgeConfigSpec.BooleanValue sortByCountFirst;
+        final ForgeConfigSpec.BooleanValue excludeHotbar;
 
         private ClientConfig(ForgeConfigSpec.Builder builder) {
             builder.comment("Inventory sorter");
@@ -67,6 +68,10 @@ public class Config {
                     .comment("Sort by count first")
                     .translation("inventorysorter.config.sortbycountfirst")
                     .define("sortByCountFirst", false);
+            excludeHotbar = builder
+                    .comment("Exclude hotbar from sorting")
+                    .translation("inventorysorter.config.excludehotbar")
+                    .define("excludeHotbar", true);
             builder.pop();
         }
     }

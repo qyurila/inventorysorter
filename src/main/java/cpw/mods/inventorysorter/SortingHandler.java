@@ -49,6 +49,11 @@ public enum SortingHandler implements Consumer<ContainerContext>
         if (context == null) throw new NullPointerException("WHUT");
         // Ignore if we can't find ourselves in the slot set
         if (context.slotMapping == null) return;
+        // Skip sorting if the target is the hotbar and excludeHotbar is enabled
+        if (Config.ClientConfig.CONFIG.excludeHotbar.get() && context.slotMapping.inv == ContainerContext.PLAYER_HOTBAR) {
+            InventorySorter.INSTANCE.debugLog("Hotbar sorting skipped due to excludeHotbar config", ()->new String[0]);
+            return;
+        }
 
         // Creative tabs are only populated when the creative menu is opened for the first time
         // so we should populate them manually for it to work in the survival mode
