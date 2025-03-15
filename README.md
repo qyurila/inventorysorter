@@ -33,13 +33,16 @@ Please report any issues if you find any.
 
 ### Changes and Bug Fixes
 
-- The 1.18.2 version now works with the mods that have increased slot stack size
-  - notably **Sophisticated Backpacks/Storages**
-  - 1.19.2 and 1.20.1 versions already worked with it
-- Made a failsafe to **prevent items from being deleted** in some cases
-  - notably on Curios slots
-- Some redundant features/codes that don't work properly or cause issues in some cases were removed
-  - notably Scroll Wheel
+- Implemented a failsafe to **prevent items from being deleted** in certain scenarios
+  - Notably, **Curios** slots
+- Introduced an option to **prevent hotbar from being sorted** (enabled by default)
+- Fixed compatibility with mods that increase slot stack sizes in the 1.18.2 version
+  - Notably, **Sophisticated Backpacks/Storages** and **Dank Storage**
+  - 1.19.2 and 1.20.1 versions were already compatible
+- Added an option to abort sorting based on the first slot type
+  - Default: `[SlotIronFurnaceInput]` (from **Iron Furnace**)
+- Cleaned up the mod by removing some features that were causing issues or redundant
+  - Notably, the Scroll Wheel function
 
 > TODO: Make PRs for the original repo, after enough testing
 
@@ -65,7 +68,7 @@ The current available options for the sort order are:
 You can also set it to order items **by count first**, just like the original mod,
 and then by one of the above options (when the count is the same).
 
-Just choose an option in the config file. No relaunch required.
+Just choose an option in the config file. (might require relaunch, depends on the config)
 
 
 ## Details
